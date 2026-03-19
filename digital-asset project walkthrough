@@ -1,0 +1,93 @@
+# Digital Asset Protection System - Implementation Walkthrough
+
+## What was accomplished
+I have built the complete microservices architecture as specified in your requirements. The system is designed to detect unauthorized usage of images and videos using cryptographic hashing and AI similarity.
+
+### 1. Python Service (ML Engine)
+- Created a robust FastAPI server handling hashing and embeddings.
+- Implemented [models/cnn_model.py](file:///d:/Piracy_detection/digital-asset-protection/python-service/models/cnn_model.py) which uses a pretrained PyTorch ResNet18 model to generate 512-dimensional embeddings for images.
+- Implemented [services/image_hash.py](file:///d:/Piracy_detection/digital-asset-protection/python-service/services/image_hash.py) and [services/video_hash.py](file:///d:/Piracy_detection/digital-asset-protection/python-service/services/video_hash.py) (using `imagehash` and OpenCV) to generate pHash, dHash, and frame-by-frame fingerprinting.
+- Mathematical similarity logic added via `Hamming distance` and `Cosine similarity`.
+
+### 2. Backend Node (Main Orchestrator)
+- Created the Express.js backend with MongoDB integration (`mongoose`).
+- [storageService.js](file:///d:/Piracy_detection/digital-asset-protection/backend-node/services/storageService.js) handles intermediate file uploads and local storage using `multer`.
+- Integration with the Python service is fully handled in [pythonService.js](file:///d:/Piracy_detection/digital-asset-protection/backend-node/services/pythonService.js) using `axios` and `form-data`.
+- API endpoints `POST /upload`, `GET /media`, `GET /violations`, and `POST /report` implemented in [mediaController.js](file:///d:/Piracy_detection/digital-asset-protection/backend-node/controllers/mediaController.js).
+
+### 3. Scraper Service
+- Scheduled a Node.js cron job to periodically scrape internet URLs.
+- Implemented scraping mock logic using `axios` and temporary file downloads.
+- [sendToPython.js](file:///d:/Piracy_detection/digital-asset-protection/scraper-node/services/sendToPython.js) forwards newly discovered media to the Python ML engine to compare against known reference media footprints.
+
+### 4. React Frontend
+- Built a modern, dark-themed UI with `Vite` and `React`.
+- Configured dynamic routing using `react-router-dom`.
+- Included three major components:
+  1. **Upload**: Submits new media to the backend.
+  2. **Dashboard**: Shows real-time monitoring stats and active scrapers.
+  3. **ViolationCard**: Visually highlights unauthorized usage, returning the source URL and the model's confidence match percentage.
+
+### 5. Dockerization & Structure
+- Each service has its own [Dockerfile](file:///d:/Piracy_detection/digital-asset-protection/frontend/Dockerfile) optimized for its specific runtime (Python 3.10 and Node 18).
+- A root [docker-compose.yml](file:///d:/Piracy_detection/digital-asset-protection/docker-compose.yml) orchestrates all services seamlessly alongside a MongoDB instance.
+- Fully adhered to the strict folder structure requested.
+- [docs/sample_requests.http](file:///d:/Piracy_detection/digital-asset-protection/docs/sample_requests.http) has been added for API interaction references.
+
+---
+
+## 🔑 Environment Variables & API Keys Required
+
+The core Digital Asset Protection System is designed to be **100% self-hosted** and heavily relies on local machine learning computations for image hashing and video fingerprinting. Therefore, **NO external third-party API keys** (like OpenAI, AWS Rekognition, Google Cloud Vision, etc.) are strictly required to run the core ML engine or the main backend API. 
+
+However, you can configure the following environment configuration parameters across the components:
+
+- **JWT_SECRET**: (Optional) For future JWT authentication in `backend-node`, currently defaults to `supersecretjwt`.
+- **MONGO_URI**: Handled automatically in Docker Compose.
+- **Proxy/Scraping API Keys (Optional)**: In the future, if you deploy the `scraper-node` to a live production environment, you might face robust bot protections or recatchpas. At that point, you might want to inject API Keys for rotational IP scraping services like *ScrapingBee*, *BrightData*, or *ZenRows*.
+- **HuggingFace / PyTorch Pretrained Models**: The first time you execute the ML Engine, PyTorch's `torchvision` autonomously downloads the fundamental weights for ResNet18 without requiring any token/API Key.
+
+---
+
+## 🚀 Commands to Run the Project
+
+The entire system is orchestrated securely using Docker Compose. Open your terminal at `d:\Piracy_detection\digital-asset-protection` to run the following commands.
+
+> [!NOTE] 
+> Modern Docker versions use `docker compose` (with a space) rather than the older `docker-compose` (with a hyphen) command.
+
+**1. Start the Entire Microservices Architecture**
+Build and start all 5 containers in the background (detached mode):
+```bash
+docker compose up --build -d
+```
+
+**2. Monitor all real-time logs**
+To observe all incoming network traffic, ML inferences, and see what the active scraper service is finding:
+```bash
+docker compose logs -f
+```
+
+**3. Check the Status of Containers**
+Ensure that database, python-service, backend-node, scraper-node, and frontend are all "Up":
+```bash
+docker compose ps
+```
+
+**4. Rebuild a Specific Microservice**
+If you edit the Python ML engine codebase and only want to rebuild that microservice, you can use:
+```bash
+docker compose up -d --build python-service
+```
+*(You can substitute `python-service` with `backend-node`, `frontend`, etc.)*
+
+**5. Stop and Remove Everything**
+When you want to gracefully turn off the entire dashboard and containers (adding `-v` explicitly destroys the database records, omitting it preserves uploaded images between sessions):
+```bash
+docker compose down
+```
+
+**6. Access the Application Ports**
+- **Frontend Dashboard**: Open your browser at [http://localhost:3000](http://localhost:3000)
+- **Node Main API**: [http://localhost:5000](http://localhost:5000)
+- **Python ML API (Interactive Docs)**: [http://localhost:8000/docs](http://localhost:8000/docs)
