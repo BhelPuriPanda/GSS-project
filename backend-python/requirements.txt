@@ -1,10 +1,19 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# --- API Server ---
 fastapi
 uvicorn[standard]
 python-multipart
+pydantic
+
+# --- Image/Video Processing ---
 pillow
 numpy
-opencv-python
 imagehash
+# Headless OpenCV guarantees docker/server compatibility without relying on Linux GUI packages like libgl1
+opencv-python-headless
+
+# --- Machine Learning ---
+# These will now automatically pull the lighter CPU versions thanks to the index flag at the top!
 torch
 torchvision
-pydantic
