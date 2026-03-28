@@ -47,7 +47,8 @@ exports.uploadMedia = async (req, res, next) => {
         type,
         fileUrl: relativeFilePath,
         fingerprint: fingerprintData,
-        isViolation: false
+        isViolation: false,
+        owner: req.user ? (req.user.id || req.user._id) : undefined
     });
 
     res.status(201).json({
@@ -59,11 +60,29 @@ exports.uploadMedia = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all protected original media assets
- * @route   GET /api/media
- * @note    Used by Frontend Dashboard and Background Scraper to fetch reference targets
+ * @desc    Get all protected original media assets for the LOGGED IN USER
+ * @route   GET /api/media/me
+ * @note    Used by Frontend Dashboard
  */
-exports.getMedia = async (req, res, next) => {
+exports.getMyMedia = async (req, res, next) => {
+    const userId = req.user ? (req.user.id || req.user._id) : null;
+    const mediaAssets = await Media.find({ isViolation: false, owner: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+        status: 'success',
+        results: mediaAssets.length,
+        data: {
+            media: mediaAssets
+        }
+    });
+};
+
+/**
+ * @desc    Get ALL protected original media across the entire system
+ * @route   GET /api/media/all
+ * @note    Used securely by the Background Scraper via API Key
+ */
+exports.getAllProtectedMedia = async (req, res, next) => {
     const mediaAssets = await Media.find({ isViolation: false }).sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -98,7 +117,8 @@ exports.reportViolation = async (req, res, next) => {
         isViolation: true,
         sourceUrl,
         matchedWith,
-        similarityScore
+        similarityScore,
+        owner: originalMedia.owner // Inherit the actual owner of the stolen file!
     });
 
     res.status(201).json({
@@ -110,12 +130,14 @@ exports.reportViolation = async (req, res, next) => {
 };
 
 /**
- * @desc    Get all violations for reviewing on the Admin Dashboard
- * @route   GET /api/media/violations
+ * @desc    Get all violations specific to the Logged in user
+ * @route   GET /api/media/violations/me
  */
-exports.getViolations = async (req, res, next) => {
+exports.getMyViolations = async (req, res, next) => {
+    const userId = req.user ? (req.user.id || req.user._id) : null;
+
     // Populate the 'matchedWith' field so frontend knows WHAT asset was stolen
-    const violations = await Media.find({ isViolation: true })
+    const violations = await Media.find({ isViolation: true, owner: userId })
         .populate('matchedWith', 'title fileUrl type')
         .sort({ createdAt: -1 });
 

@@ -1,25 +1,36 @@
 const express = require('express');
 const mediaController = require('../controllers/mediaController');
 const upload = require('../services/storageService');
+const { auth } = require('../middleware/authMiddleware');
+const { scraperAuth } = require('../middleware/scraperMiddleware');
 
 const router = express.Router();
 
-// Route: Fetch all original, protected media
-router.route('/')
-    .get(mediaController.getMedia);
+// --- FRONTEND DASHBOARD (USER) ROUTES ---
+// Must be logged in via Auth JWT
 
-// Route: Upload new media asset directly to the system (Frontend interaction)
-// `upload.single('file')` matches the formData field name "file"
+// Get only the media that belongs to the currently logged in User
+router.route('/me')
+    .get(auth, mediaController.getMyMedia);
+
+// Upload a new piece of media as the currently logged in User
 router.route('/upload')
-    .post(upload.single('file'), mediaController.uploadMedia);
+    .post(auth, upload.single('file'), mediaController.uploadMedia);
 
-// Route: Fetch all identified violations (scraper detections)
-router.route('/violations')
-    .get(mediaController.getViolations);
+// Get only the Violations that infringe upon the currently logged in User's media
+router.route('/violations/me')
+    .get(auth, mediaController.getMyViolations);
 
-// Route: Report an infringement (Internal system interaction - Scraper Node)
-// Optional: we can add API Key verification middleware here to lock down report inserts
+
+// --- INTERNAL SCRAPER ROUTES ---
+// Protected by static x-api-key to prevent public spam
+
+// Fetch ALL media in the database unconditionally so the Scraper can scan for everything
+router.route('/all')
+    .get(scraperAuth, mediaController.getAllProtectedMedia);
+
+// Report a violation without needing a User JWT
 router.route('/report')
-    .post(mediaController.reportViolation);
+    .post(scraperAuth, mediaController.reportViolation);
 
 module.exports = router;

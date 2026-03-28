@@ -36,6 +36,11 @@ const mediaSchema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        owner: {
+            type: mongoose.Schema.ObjectId,
+            ref: 'User',
+            required: false // Optional for now to not break existing tested mock data
+        },
         // Fields specific to Violations reported by the Scraper
         sourceUrl: {
             type: String,
