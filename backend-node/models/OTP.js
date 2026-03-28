@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-//const mailSender = require("../utils/mailSender");
-//const emailTemplate = require("../mail/templates/emailVerificationTemplate");
+const mailSender = require("../utils/mailSender");
+
 const OTPSchema = new mongoose.Schema({
 	email: {
 		type: String,
@@ -18,12 +18,11 @@ const OTPSchema = new mongoose.Schema({
 });
 
 async function sendVerificationEmail(email, otp) {
-
 	try {
 		const mailResponse = await mailSender(
 			email,
-			"Talkify Verification Email",
-			`<h1>Welcome to Talkify!</h1><p>Your OTP for registration is: <b>${otp}</b></p>`
+			"DAPS Service Verification",
+			`<h1>Welcome to Digital Asset Protection System (DAPS)!</h1><p>Your OTP for authentication is: <b>${otp}</b></p>`
 		);
 	} catch (error) {
 		throw error;
@@ -31,11 +30,9 @@ async function sendVerificationEmail(email, otp) {
 }
 
 OTPSchema.pre("save", async function () {
-
 	if (this.isNew) {
 		await sendVerificationEmail(this.email, this.otp);
 	}
-
 });
 
 const OTP = mongoose.model("OTP", OTPSchema);

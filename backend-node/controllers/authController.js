@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const otpGenerator = require('otp-generator');
 const User = require('../models/userModel');
+const OTP = require('../models/OTP');
 const AppError = require('../utils/AppError');
-
 exports.sendotp = async (req, res) => {
   try {
     const { email } = req.body
@@ -50,14 +52,12 @@ exports.signup = async (req, res) => {
   try {
     const {
       fullName,
-      uniqueId,
       email,
       password,
-      otp,
-      publicKey,
-      encryptedPrivateKey,
+      otp
+
     } = req.body
-    if (!fullName || !uniqueId || !email || !password || !otp || !publicKey || !encryptedPrivateKey) {
+    if (!fullName || !email || !password || !otp) {
       return res.status(403).send({
         success: false,
         message: "All Fields are required",
@@ -95,8 +95,7 @@ exports.signup = async (req, res) => {
       uniqueId,
       email,
       password: hashedPassword,
-      publicKey,
-      encryptedPrivateKey,
+
     })
 
     const token = jwt.sign(

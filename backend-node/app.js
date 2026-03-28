@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 
 const connectDB = require('./config/db');
 const mediaRoutes = require('./routes/mediaRoutes');
@@ -30,6 +31,7 @@ connectDB();
 
 // Middleware
 app.use(cors());
+app.use(cookieParser());
 app.use(express.json({ limit: '10kb' })); // Body parser, reading data from body into req.body
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 

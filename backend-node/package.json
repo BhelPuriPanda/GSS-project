@@ -1,0 +1,32 @@
+{
+  "name": "daps-backend-node",
+  "version": "1.0.0",
+  "description": "Digital Asset Protection System Backend",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "axios": "*",
+    "axios-retry": "*",
+    "bcryptjs": "*",
+    "cookie-parser": "^1.4.7",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*",
+    "express-async-errors": "*",
+    "express-rate-limit": "*",
+    "form-data": "*",
+    "jsonwebtoken": "*",
+    "mongoose": "*",
+    "multer": "1.4.5-lts.1",
+    "nodemailer": "^8.0.4",
+    "otp-generator": "*",
+    "winston": "*",
+    "zod": "*"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
