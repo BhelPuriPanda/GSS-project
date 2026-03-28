@@ -232,3 +232,28 @@ exports.resetPassword = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+exports.fastRegister = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ success: false, message: "Missing fields" });
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ success: false, message: "User exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      fullName: name,
+      email,
+      uniqueId: email,
+      password: hashedPassword
+    });
+
+    const token = jwt.sign({ email: user.email, id: user._id }, process.env.JWT_SECRET, { expiresIn: "24h" });
+    return res.status(200).json({ success: true, token, user: { ...user.toObject(), token }, message: "Registered instantly" });
+  } catch (err) {
+    console.error("fastRegister error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
