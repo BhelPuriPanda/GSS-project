@@ -12,26 +12,32 @@ class ScraperService {
     }
 
     async executeCycle() {
+        console.log(">>> [TRACE] Starting executeCycle...");
         // 1. Fetch Protected Media
         const referenceMedia = await this.fetchProtectedMedia();
+        console.log(`>>> [TRACE] Reference media found: ${referenceMedia?.length || 0}`);
         if (!referenceMedia || referenceMedia.length === 0) {
             console.log("No reference media found. Skipping cycle.");
             return;
         }
 
-        // 2. Web Scraping & Comparison
+           // 2. Web Scraping & Comparison
         const scrapedItems = await this.scrapeTargetSites();
+        console.log(`>>> [TRACE] Scraped items found: ${scrapedItems?.length || 0}`);
         
         for (const scraped of scrapedItems) {
+            console.log(`>>> [TRACE] Processing scraped file: ${scraped.filePath}`);
             for (const ref of referenceMedia) {
+                console.log(`>>> [TRACE] Attempting Python verification against ref: ${ref._id}`);
                 // 3. Verify with Python ML Service
                 const matchResult = await this.verifyWithPython(scraped.filePath, ref);
+                console.log(`>>> [TRACE] Python returned:`, JSON.stringify(matchResult));
                 
                 if (matchResult && matchResult.comparison?.match === true) {
                     console.log(`🚨 Match found for ref ${ref._id} with file ${scraped.filePath}`);
                     
                     // 4. Report to Backend
-                    await this.reportToBackend(scraped.url, ref._id, matchResult.comparison.similarity);
+                    await this.reportToBackend(scraped.url, ref._id, matchResult.comparison.cosine_similarity);
                     
                     // Break inner loop since it's already flagged
                     break; 
@@ -45,9 +51,11 @@ class ScraperService {
 
     async fetchProtectedMedia() {
         try {
-            console.log(`Fetching reference media from ${this.backendUrl}/api/media`);
-            const response = await axios.get(`${this.backendUrl}/api/media`);
-            return response.data.data;
+            console.log(`Fetching reference media from ${this.backendUrl}/api/media/all`);
+            const response = await axios.get(`${this.backendUrl}/api/media/all`, {
+                headers: { 'x-api-key': process.env.SCRAPER_API_KEY || 'daps-internal-key-2026' }
+            });
+            return response.data.data.media || [];
         } catch (error) {
             console.error("Failed to fetch protected media:", error.message);
             return [];
@@ -55,20 +63,32 @@ class ScraperService {
     }
 
     async scrapeTargetSites() {
-        // MOCK SCRAPING LOGIC
-        // Here you would use axios/cheerio or puppeteer to download images from target sites.
-        console.log("Scraping target websites...");
-        
-        // Simulating the creation of a temporary downloaded image
+        console.log("Scraping target websites (Mocking by downloading an existing uploaded image)...");
         const tempFilePath = path.join(__dirname, '..', 'temp_scraped.jpg');
-        fs.writeFileSync(tempFilePath, "dummy binary data");
-
-        return [
-            {
-                url: "http://mock-piracy-site.com/suspicious_image.jpg",
-                filePath: tempFilePath
+        
+        try {
+            // Find a real image that was uploaded via the Node Backend to ensure a 100% test match!
+            const uploadsDir = path.join(__dirname, '..', '..', 'backend-node', 'uploads');
+            if (fs.existsSync(uploadsDir)) {
+                const files = fs.readdirSync(uploadsDir);
+                const imageFiles = files.filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg'));
+                
+                if (imageFiles.length > 0) {
+                    const sourceFile = path.join(uploadsDir, imageFiles[0]);
+                    fs.copyFileSync(sourceFile, tempFilePath);
+                    
+                    return [{
+                        url: `http://mock-piracy-site.com/${imageFiles[0]}`,
+                        filePath: tempFilePath
+                    }];
+                }
             }
-        ];
+            console.log("No valid source images found to serve as a mock scrape target.");
+            return [];
+        } catch (error) {
+            console.error("Mock scraping failed", error);
+            return [];
+        }
     }
 
     async verifyWithPython(filePath, referenceProfile) {
@@ -76,7 +96,6 @@ class ScraperService {
             console.log(`Verifying image ${filePath} with python ML service...`);
             
             // To properly send multipart/form-data
-            /*
             const formData = new FormData();
             formData.append('file', fs.createReadStream(filePath));
             
@@ -95,13 +114,6 @@ class ScraperService {
                 headers: { ...formData.getHeaders() }
             });
             return response.data;
-            */
-            
-            // MOCK PYTHON RESPONSE
-            return {
-                match: true,
-                similarity: 0.96
-            };
         } catch (error) {
             console.error("Failed to verify with Python API:", error.message);
             return { match: false, similarity: 0 };
@@ -115,6 +127,8 @@ class ScraperService {
                 sourceUrl: sourceUrl,
                 matchedWith: referenceId,
                 similarityScore: similarity
+            }, {
+                headers: { 'x-api-key': process.env.SCRAPER_API_KEY || 'daps-internal-key-2026' }
             });
             console.log("Violation reported successfully.");
         } catch (error) {
