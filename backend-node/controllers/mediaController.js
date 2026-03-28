@@ -5,8 +5,6 @@ const logger = require('../utils/logger');
 const pythonService = require('../services/pythonService');
 const scrapingService = require('../services/scrapingService');
 
-
-
 /**
  * @desc    Upload a new media asset, send it to Python for ML, store in MongoDB
  * @route   POST /api/media/upload

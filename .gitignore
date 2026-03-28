@@ -150,3 +150,6 @@ venv1/
 
 # Uploads directory (user-uploaded files)
 uploads/
+
+# Node modules
+node_modules/

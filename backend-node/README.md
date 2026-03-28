@@ -5,6 +5,7 @@ This is the Express.js backend for the Goalcast application, primarily handling 
 ## Features
 
 - **Authentication System**: Secure signup, login, password recovery, and OTP generation.
+- **Media Storage**: Built-in multipart file upload handling via `multer` allowing up to 50MB uploads (configured in `storageService.js`).
 - **Security best practices**: Utilizing libraries like `bcrypt` for hashing, `express-rate-limit` for limiting API hits, and CORS.
 - **Error Handling**: Custom robust global error handling middleware via `express-async-errors`.
 - **JWT Support**: Secure JSON Web Token implementation for authenticated routes.
@@ -17,6 +18,7 @@ backend-node/
 ├── middleware/       # Custom Express middleware (errorHandler, validateRequest, authMiddleware)
 ├── models/           # Mongoose schemas representing database structures (userModel, OTP)
 ├── routes/           # Express routers directing requests to appropriate controllers (authRoutes)
+├── services/         # Dedicated logic integrations, such as `storageService.js` handling `multer` logic for media APIs
 ├── utils/            # Utility handlers for distinct components (logger.js, AppError.js, mailSender.js)
 └── app.js            # Main Express application entry point where middlewares and routes are connected
 ```

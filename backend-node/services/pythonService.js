@@ -27,7 +27,12 @@ exports.extractFingerprint = async (filePath, type) => {
         });
 
         if (response.data && response.data.fingerprint) {
-            return response.data.fingerprint;
+            const fp = response.data.fingerprint;
+            return {
+                pHash: fp.phash || null,
+                dHash: fp.dhash || null,
+                embedding: fp.embedding || []
+            };
         } else if (response.data) {
             return response.data; // Fallback mapping
         }
