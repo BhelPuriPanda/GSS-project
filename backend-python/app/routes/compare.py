@@ -145,3 +145,38 @@ async def compare_video(
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         remove_file(temp_path)
+
+
+@router.post("/two-images")
+async def compare_two_images(
+    file1: UploadFile = File(...),
+    file2: UploadFile = File(...)
+):
+    temp_path1 = await save_upload_file(file1)
+    temp_path2 = await save_upload_file(file2)
+    
+    try:
+        hashes1 = generate_hashes(temp_path1)
+        embedding1 = generate_embedding(temp_path1)
+        
+        hashes2 = generate_hashes(temp_path2)
+        embedding2 = generate_embedding(temp_path2)
+        
+        comparison = compare_fingerprints(
+            source_phash=hashes1["phash"],
+            source_embedding=embedding1,
+            target_phash=hashes2["phash"],
+            target_embedding=embedding2,
+            media_type="image",
+        )
+        
+        return {
+            "success": True,
+            "comparison": comparison
+        }
+    except Exception as e:
+        logger.exception("Dual Image compare failed")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        remove_file(temp_path1)
+        remove_file(temp_path2)
