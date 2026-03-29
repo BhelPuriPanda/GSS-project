@@ -57,3 +57,67 @@ What should my immediate next steps be to issue a takedown or protect my asset? 
         return next(new AppError('Failed to generate AI strategy from OpenRouter', 500));
     }
 };
+
+/**
+ * @desc    Summarize all violations into an executive brief using OpenRouter AI
+ * @route   POST /api/ai/summarize
+ */
+exports.summarizeViolations = async (req, res, next) => {
+    const { violations } = req.body;
+
+    if (!violations || !Array.isArray(violations) || violations.length === 0) {
+        return next(new AppError('Please provide an array of violations to summarize.', 400));
+    }
+
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterApiKey) {
+        return next(new AppError('OpenRouter API Key is not configured on the server.', 500));
+    }
+
+    const violationList = violations.map((v, i) => 
+        `${i + 1}. Asset: "${v.matchedTitle}" | Similarity: ${Math.round((v.similarityScore || 0) * 100)}% | Found at: ${v.sourceUrl}`
+    ).join('\n');
+
+    const prompt = `You are a digital rights analyst. Below are copyright violations detected by our automated scraper. Respond in EXACTLY 3 short lines:
+Line 1: Total violations count and severity level (Low/Medium/High/Critical).
+Line 2: Which original asset(s) are being pirated the most and from which domains.
+Line 3: One clear recommended next step.
+
+Violations:
+${violationList}
+
+Keep each line under 20 words. No bullet points, no markdown, no extra text.`;
+
+    try {
+        const response = await axios.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            {
+                model: "google/gemma-3n-e4b-it:free",
+                messages: [{ role: "user", content: prompt }]
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${openRouterApiKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:4000",
+                    "X-Title": "Digital Asset Protection System"
+                }
+            }
+        );
+
+        logger.info(`OpenRouter Summary Response Status: ${response.status}`);
+
+        const text = response.data.choices?.[0]?.message?.content || "Summary generation failed or returned empty.";
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                summary: text
+            }
+        });
+
+    } catch (error) {
+        logger.error(`OpenRouter Summary API Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+        return next(new AppError('Failed to generate AI summary from OpenRouter', 500));
+    }
+};
