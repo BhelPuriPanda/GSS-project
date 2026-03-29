@@ -111,6 +111,24 @@ exports.reportViolation = async (req, res, next) => {
         return next(new AppError('The reference original media ID does not exist', 404));
     }
 
+    // Deduplication mechanism: Check if this exact violation already exists
+    const existingViolation = await Media.findOne({ 
+        isViolation: true, 
+        sourceUrl: sourceUrl, 
+        matchedWith: matchedWith 
+    });
+
+    if (existingViolation) {
+        // Return duplicate without creating a new one to prevent db bloat
+        return res.status(200).json({
+            status: 'success',
+            duplicate: true,
+            data: {
+                violation: existingViolation
+            }
+        });
+    }
+
     const violation = await Media.create({
         title: title || `Violation of ${originalMedia.title}`,
         type: type || originalMedia.type,

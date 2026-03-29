@@ -37,6 +37,7 @@ backend-node/
    PORT=5000
    JWT_SECRET=your_jwt_secret_key
    MONGODB_URI=your_mongodb_connection_string
+   OPENROUTER_API_KEY=your_openrouter_api_key_for_ai
    ```
    *(Note: Ensure your `config/db.js` properly points to your MongoDB connection variable.)*
 
@@ -70,4 +71,18 @@ These routes handle all critical authentication states such as onboarding and cr
 
 ### Media (`/api/media`)
 
-- Configured at `/api/media` (Note: Implementation pending / routing file is under development).
+- **`POST /api/media/upload`**
+  Upload a new media asset for protection.
+- **`GET /api/media/me`**
+  Get all protected original media assets for the logged-in user.
+- **`GET /api/media/all`**
+  Get all protected original media across the entire system.
+- **`POST /api/media/report`**
+  Report a newly found infringement/violation (Fired by Scraper Node).
+- **`GET /api/media/violations/me`**
+  Get all violations specific to the logged-in user.
+
+### AI Assistant (`/api/ai`)
+
+- **`POST /api/ai/analyze`**
+  Generates a strategic, actionable legal step for handling a specific digital piracy violation using OpenRouter. Requires `violationTitle`, `sourceUrl`, and `matchedTitle`. Integrates with the Google Gemma suite natively. Requires `OPENROUTER_API_KEY` in `.env`.

@@ -9,6 +9,7 @@ const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const mediaRoutes = require('./routes/mediaRoutes');
 const authRoutes = require('./routes/authRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 const globalErrorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 const AppError = require('./utils/AppError');
@@ -47,6 +48,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/media', mediaRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Handle unhandled routes
 app.all('*', (req, res, next) => {
