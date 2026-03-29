@@ -1,8 +1,19 @@
 require('dotenv').config();
 const cron = require('node-cron');
+const http = require('http');
 const scraperService = require('./services/scraperService');
 
 console.log("🕷️ Scraper Node Initialized...");
+
+// Create a dummy HTTP server so Render's free Web Service tier doesn't kill the process
+const PORT = process.env.PORT || 10000;
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.write('Scraper is running in the background!');
+    res.end();
+}).listen(PORT, () => {
+    console.log(`Dummy server listening on port ${PORT} to satisfy Render Health Checks`);
+});
 
 // Run the scraper task
 const runScraper = async () => {
