@@ -2,6 +2,75 @@ const axios = require('axios');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
 
+// ═══ CASCADING MODEL FALLBACK CHAIN ═══
+// If a model returns 429 (rate-limited), the next one in the list is tried.
+// All are free-tier models on OpenRouter. Order: fastest → most reliable.
+const MODEL_CASCADE = [
+    'google/gemma-3n-e4b-it:free',
+    'meta-llama/llama-4-maverick:free',
+    'qwen/qwen3-14b:free',
+    'deepseek/deepseek-r1-0528:free',
+];
+
+/**
+ * Calls OpenRouter with automatic model fallback.
+ * Tries each model in MODEL_CASCADE until one succeeds.
+ * @param {string} prompt - The user prompt
+ * @param {string} apiKey - OpenRouter API key
+ * @returns {Promise<string>} - The generated text
+ */
+async function callWithFallback(prompt, apiKey) {
+    let lastError = null;
+
+    for (const model of MODEL_CASCADE) {
+        try {
+            logger.info(`Attempting model: ${model}`);
+
+            const response = await axios.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                {
+                    model,
+                    messages: [{ role: "user", content: prompt }]
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "http://localhost:4000",
+                        "X-Title": "Digital Asset Protection System"
+                    },
+                    timeout: 30000 // 30 second timeout per model
+                }
+            );
+
+            const text = response.data.choices?.[0]?.message?.content;
+            if (text) {
+                logger.info(`Success with model: ${model}`);
+                return text;
+            }
+
+            // If response was empty, try next model
+            logger.warn(`Model ${model} returned empty response, trying next...`);
+        } catch (error) {
+            const status = error.response?.status;
+            const errMsg = error.response?.data?.error?.message || error.message;
+            logger.warn(`Model ${model} failed (${status || 'timeout'}): ${errMsg}`);
+            lastError = error;
+
+            // Cascade on rate-limit (429), not-found (404), or server errors (5xx)
+            // Only stop on auth errors (401/403) since those affect all models
+            if (status && status !== 429 && status !== 404 && status < 500) {
+                throw error;
+            }
+
+            // Otherwise continue to next model
+        }
+    }
+
+    // All models exhausted
+    throw lastError || new Error('All models in the cascade failed.');
+}
+
 /**
  * @desc    Analyze a violation and generate a legal strategy using OpenRouter AI
  * @route   POST /api/ai/analyze
@@ -25,25 +94,7 @@ The scraper flagged it as: "${violationTitle}".
 What should my immediate next steps be to issue a takedown or protect my asset? Be professional and direct.`;
 
     try {
-        const response = await axios.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            {
-                model: "google/gemma-3n-e4b-it:free",
-                messages: [{ role: "user", content: prompt }]
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${openRouterApiKey}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "http://localhost:4000", // Default react port if applicable
-                    "X-Title": "Digital Asset Protection System"
-                }
-            }
-        );
-
-        logger.info(`OpenRouter Response Status: ${response.status}`);
-        
-        const text = response.data.choices?.[0]?.message?.content || "Generation failed or returned empty.";
+        const text = await callWithFallback(prompt, openRouterApiKey);
 
         res.status(200).json({
             status: 'success',
@@ -53,8 +104,8 @@ What should my immediate next steps be to issue a takedown or protect my asset? 
         });
 
     } catch (error) {
-        logger.error(`OpenRouter API Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-        return next(new AppError('Failed to generate AI strategy from OpenRouter', 500));
+        logger.error(`OpenRouter API Error (all models failed): ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+        return next(new AppError(`Failed to generate AI strategy from OpenRouter due to error: ${error.response ? JSON.stringify(error.response.data) : error.message}`, 500));
     }
 };
 
@@ -78,36 +129,22 @@ exports.summarizeViolations = async (req, res, next) => {
         `${i + 1}. Asset: "${v.matchedTitle}" | Similarity: ${Math.round((v.similarityScore || 0) * 100)}% | Found at: ${v.sourceUrl}`
     ).join('\n');
 
-    const prompt = `You are a digital rights analyst. Below are copyright violations detected by our automated scraper. Respond in EXACTLY 3 short lines:
-Line 1: Total violations count and severity level (Low/Medium/High/Critical).
-Line 2: Which original asset(s) are being pirated the most and from which domains.
-Line 3: One clear recommended next step.
+    const prompt = `You are a senior digital rights enforcement analyst. Analyze these copyright violations detected by our perceptual-hash scraper and write an executive intelligence brief.
+
+Cover these points in 5-7 flowing sentences:
+- How many violations were found and overall threat severity (Low/Medium/High/Critical)
+- Which specific assets are being targeted and at what similarity confidence
+- Which domains are distributing the pirated content
+- Potential impact on the creator's intellectual property
+- Recommended enforcement actions (DMCA takedowns, platform reporting, legal steps)
 
 Violations:
 ${violationList}
 
-Keep each line under 20 words. No bullet points, no markdown, no extra text.`;
+CRITICAL FORMATTING RULES: Output ONLY plain text. Do NOT use any markdown. No asterisks, no bold, no headers, no bullet points, no numbered lists. Just clean paragraph sentences. Do NOT start with a title or heading. Jump straight into the analysis.`;
 
     try {
-        const response = await axios.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            {
-                model: "google/gemma-3n-e4b-it:free",
-                messages: [{ role: "user", content: prompt }]
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${openRouterApiKey}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "http://localhost:4000",
-                    "X-Title": "Digital Asset Protection System"
-                }
-            }
-        );
-
-        logger.info(`OpenRouter Summary Response Status: ${response.status}`);
-
-        const text = response.data.choices?.[0]?.message?.content || "Summary generation failed or returned empty.";
+        const text = await callWithFallback(prompt, openRouterApiKey);
 
         res.status(200).json({
             status: 'success',
@@ -117,7 +154,7 @@ Keep each line under 20 words. No bullet points, no markdown, no extra text.`;
         });
 
     } catch (error) {
-        logger.error(`OpenRouter Summary API Error: ${error.response ? JSON.stringify(error.response.data) : error.message}`);
-        return next(new AppError('Failed to generate AI summary from OpenRouter', 500));
+        logger.error(`OpenRouter Summary API Error (all models failed): ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+        return next(new AppError(`Failed to generate AI summary from OpenRouter due to error: ${error.response ? JSON.stringify(error.response.data) : error.message}`, 500));
     }
 };
