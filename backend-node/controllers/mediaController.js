@@ -66,12 +66,6 @@ exports.uploadMedia = async (req, res, next) => {
  */
 exports.getMyMedia = async (req, res, next) => {
     const userId = req.user ? (req.user.id || req.user._id) : null;
-
-    // Guard: If we can't resolve a userId, return empty to prevent leaking orphaned/unowned data
-    if (!userId) {
-        return res.status(200).json({ status: 'success', results: 0, data: { media: [] } });
-    }
-
     const mediaAssets = await Media.find({ isViolation: false, owner: userId }).sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -159,10 +153,6 @@ exports.reportViolation = async (req, res, next) => {
  */
 exports.getMyViolations = async (req, res, next) => {
     const userId = req.user ? (req.user.id || req.user._id) : null;
-
-    if (!userId) {
-        return res.status(200).json({ status: 'success', results: 0, data: { violations: [] } });
-    }
 
     // Populate the 'matchedWith' field so frontend knows WHAT asset was stolen
     const violations = await Media.find({ isViolation: true, owner: userId })

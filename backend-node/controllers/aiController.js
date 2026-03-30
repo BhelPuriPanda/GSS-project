@@ -7,9 +7,9 @@ const logger = require('../utils/logger');
 // All are free-tier models on OpenRouter. Order: fastest → most reliable.
 const MODEL_CASCADE = [
     'google/gemma-3n-e4b-it:free',
-    'meta-llama/llama-4-maverick:free',
-    'qwen/qwen3-14b:free',
-    'deepseek/deepseek-r1-0528:free',
+    'meta-llama/llama-3.3-70b-instruct:free',
+    'nvidia/llama-3.1-nemotron-ultra-253b:free',
+    'openrouter/free',
 ];
 
 /**
