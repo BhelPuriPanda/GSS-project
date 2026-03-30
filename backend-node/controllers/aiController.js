@@ -158,3 +158,58 @@ CRITICAL FORMATTING RULES: Output ONLY plain text. Do NOT use any markdown. No a
         return next(new AppError(`Failed to generate AI summary from OpenRouter due to error: ${error.response ? JSON.stringify(error.response.data) : error.message}`, 500));
     }
 };
+
+/**
+ * @desc    Draft a formal DMCA takedown notice email for a violation
+ * @route   POST /api/ai/draft-takedown
+ */
+exports.draftTakedown = async (req, res, next) => {
+    const { matchedTitle, sourceUrl, similarityScore, ownerName } = req.body;
+
+    if (!matchedTitle || !sourceUrl) {
+        return next(new AppError('Please provide the matched asset title and source URL.', 400));
+    }
+
+    const openRouterApiKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterApiKey) {
+        return next(new AppError('OpenRouter API Key is not configured on the server.', 500));
+    }
+
+    const similarity = similarityScore ? `${Math.round(similarityScore * 100)}%` : 'high';
+    const owner = ownerName || '[YOUR NAME]';
+
+    const prompt = `Draft a professional copyright takedown request email that a content creator can send to a website hosting their pirated content. This should be country-neutral and not reference any specific law like DMCA.
+
+Details:
+- Creator/Owner Name: ${owner}
+- Original Asset Title: "${matchedTitle}"
+- Infringing URL where pirated content was found: ${sourceUrl}
+- Perceptual hash similarity confidence: ${similarity}
+
+The email should include:
+1. A clear subject line (on its own line, prefixed with "Subject: ")
+2. Professional greeting
+3. Identification of the copyrighted work owned by the creator
+4. Identification of the infringing material with the exact URL
+5. Statement that the use is unauthorized and infringes copyright
+6. Request for immediate removal of the infringing content
+7. Statement that the creator is willing to take further legal action if necessary
+8. Professional closing with signature placeholder
+
+CRITICAL FORMATTING RULES: Output ONLY plain text. No markdown, no asterisks, no bold formatting. Use line breaks for structure. The email should be ready to copy-paste and send. Keep it professional, firm, and legally sound.`;
+
+    try {
+        const text = await callWithFallback(prompt, openRouterApiKey);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                email: text
+            }
+        });
+
+    } catch (error) {
+        logger.error(`OpenRouter Takedown Draft Error (all models failed): ${error.response ? JSON.stringify(error.response.data) : error.message}`);
+        return next(new AppError(`Failed to generate takedown draft: ${error.response ? JSON.stringify(error.response.data) : error.message}`, 500));
+    }
+};
