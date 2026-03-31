@@ -7,8 +7,8 @@ const puppeteer = require('puppeteer');
 
 class ScraperService {
     constructor() {
-        this.backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-        this.pythonUrl = process.env.PYTHON_ML_URL || 'http://localhost:8000';
+        this.backendUrl = process.env.BACKEND_URL || 'https://daps-backend-fg54.onrender.com';
+        this.pythonUrl = process.env.PYTHON_ML_URL || 'https://daps-python.onrender.com';
     }
 
     async executeCycle() {

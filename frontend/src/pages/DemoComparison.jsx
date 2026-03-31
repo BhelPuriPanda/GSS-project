@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Upload, Loader2, X } from 'lucide-react';
 
-const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'http://localhost:8000';
+const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'https://daps-python.onrender.com';
 
 const DemoComparison = () => {
   const [fileA, setFileA] = useState(null);
