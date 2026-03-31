@@ -2,6 +2,8 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Upload, Loader2, X } from 'lucide-react';
 
+const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'https://daps-python.onrender.com';
+
 const DemoComparison = () => {
   const [fileA, setFileA] = useState(null);
   const [fileB, setFileB] = useState(null);
@@ -38,18 +40,18 @@ const DemoComparison = () => {
     formData.append('file2', fileB);
 
     try {
-      const response = await axios.post('/compare/two-images', formData, {
+      const response = await axios.post(`${PYTHON_API_BASE_URL}/compare/two-images`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (response.data?.success) {
         setResult(response.data.comparison || null);
       } else {
-        setError('Comparison failed: invalid response from server.');
+        setError(response.data?.detail || 'Comparison failed: invalid response from server.');
       }
     } catch (err) {
       console.error(err);
-      setError('Comparison request failed. Check the backend connection and image formats.');
+      setError(err.response?.data?.detail || 'Comparison request failed. Check the backend connection and image formats.');
     } finally {
       setLoading(false);
     }
@@ -94,9 +96,10 @@ const DemoComparison = () => {
           disabled={loading || !fileA || !fileB}
           className="btn-cyber bg-red-600 hover:bg-red-500 text-white"
         >
+
           {loading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
           className="btn-cyber-outline hover:bg-white/[0.1] text-slate-300"
-        >
+            <span>Compare</span>
           <X size={16} />
           <span>Reset</span>
         </button>

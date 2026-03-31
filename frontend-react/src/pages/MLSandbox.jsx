@@ -2,6 +2,8 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Upload, Loader2, X, Beaker, Shield, Activity, Cpu, Zap, ArrowRight, Image as ImageIcon, Binary } from 'lucide-react';
 
+const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'https://daps-python.onrender.com';
+
 const MLSandbox = () => {
   const [fileA, setFileA] = useState(null);
   const [fileB, setFileB] = useState(null);
@@ -42,18 +44,18 @@ const MLSandbox = () => {
     formData.append('file2', fileB);
 
     try {
-      const response = await axios.post('/compare/two-images', formData, {
+      const response = await axios.post(`${PYTHON_API_BASE_URL}/compare/two-images`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (response.data?.success) {
         setResult(response.data.comparison || null);
       } else {
-        setError('ML node returned status: 500 (INTERNAL_LOGIC_ERROR)');
+        setError(response.data?.detail || 'ML node returned an invalid response.');
       }
     } catch (err) {
       console.error(err);
-      setError('Connection to ML hardware dropped. Check Python backend status.');
+      setError(err.response?.data?.detail || 'Connection to ML hardware dropped. Check Python backend status.');
     } finally {
       setLoading(false);
     }
