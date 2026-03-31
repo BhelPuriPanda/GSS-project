@@ -19,8 +19,7 @@ const authService = {
 
   logout: () => {
     localStorage.removeItem('daps_token');
-    window.history.replaceState({}, '', '/login');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    window.location.hash = '/login';
   },
 
   getCurrentUser: async () => {

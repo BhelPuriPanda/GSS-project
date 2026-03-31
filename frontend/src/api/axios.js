@@ -5,9 +5,9 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://daps-backend-
 const redirectToRoute = (route) => {
   if (typeof window === 'undefined') return;
 
-  if (window.location.pathname !== route) {
-    window.history.replaceState({}, '', route);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+  const normalizedRoute = route.startsWith('/') ? route : `/${route}`;
+  if (window.location.hash !== `#${normalizedRoute}`) {
+    window.location.hash = normalizedRoute;
   }
 };
 
