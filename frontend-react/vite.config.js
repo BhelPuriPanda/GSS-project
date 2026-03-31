@@ -8,15 +8,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://daps-backend-fg54.onrender.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'https://daps-backend-fg54.onrender.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
       '/compare': {
-        target: 'https://daps-python.onrender.com',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       }
     }

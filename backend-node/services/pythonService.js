@@ -3,7 +3,7 @@ const FormData = require('form-data');
 const axios = require('axios');
 const logger = require('../utils/logger');
 
-const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'https://daps-python.onrender.com';
+const PYTHON_SERVICE_URL = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000';
 
 /**
  * Extracts fingerprint from Python ML Service
