@@ -2,7 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Upload, Loader2, X, Beaker, Shield, Activity, Cpu, Zap, ArrowRight, Image as ImageIcon, Binary } from 'lucide-react';
 
-const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'http://localhost:8000';
+const PYTHON_API_BASE_URL = import.meta.env.VITE_PYTHON_API_BASE_URL || 'https://daps-python.onrender.com';
 
 const MLSandbox = () => {
   const [fileA, setFileA] = useState(null);
