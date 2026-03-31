@@ -1,7 +1,8 @@
 import { ExternalLink, Trash2, Shield, Lock, FileText, Image as ImageIcon, Video, Cpu, Server, Terminal } from 'lucide-react';
 
 const MediaCard = ({ media, onDelete, className }) => {
-  const fullUrl = `http://localhost:5000${media.fileUrl}`;
+  const backendOrigin = (import.meta.env.VITE_API_BASE_URL || 'https://daps-backend-fg54.onrender.com/api').replace(/\/api\/?$/, '');
+  const fullUrl = media.fileUrl?.startsWith('http') ? media.fileUrl : `${backendOrigin}${media.fileUrl}`;
   
   const getIcon = () => {
     if (media.type === 'image') return <ImageIcon size={20} />;
