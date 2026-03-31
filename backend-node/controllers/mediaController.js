@@ -25,6 +25,7 @@ exports.uploadMedia = async (req, res, next) => {
     }
 
     let fingerprintData = { pHash: null, dHash: null, embedding: [] };
+    let uploadWarning = null;
 
     try {
         fingerprintData = await pythonService.extractFingerprint(uploadedFile.path, type);
@@ -34,10 +35,7 @@ exports.uploadMedia = async (req, res, next) => {
 
     } catch (error) {
         logger.error(`Python ML Service Error: ${error.message}`);
-        // Optionally: We can still insert the file without the fingerprint, or fail and delete the file.
-        // As per the architecture, the backend saves the fingerprint profile, so we fail if python is down.
-        fs.unlinkSync(uploadedFile.path);
-        return next(new AppError('Failed to extract media fingerprint from Python ML Service', 500));
+        uploadWarning = 'Media uploaded, but ML fingerprint extraction is temporarily unavailable. Please retry analysis later.';
     }
 
     // Clean File URL path to store in DB
@@ -55,8 +53,10 @@ exports.uploadMedia = async (req, res, next) => {
 
     res.status(201).json({
         status: 'success',
+        message: uploadWarning || 'Media uploaded successfully.',
         data: {
-            media: newMedia
+            media: newMedia,
+            warning: uploadWarning
         }
     });
 };

@@ -23,7 +23,10 @@ exports.extractFingerprint = async (filePath, type) => {
         const response = await axios.post(`${PYTHON_SERVICE_URL}${pythonEndpoint}`, pythonFormData, {
             headers: {
                 ...pythonFormData.getHeaders()
-            }
+            },
+            timeout: 45000,
+            maxBodyLength: Infinity,
+            maxContentLength: Infinity
         });
 
         if (response.data && response.data.fingerprint) {

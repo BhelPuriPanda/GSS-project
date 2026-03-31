@@ -39,7 +39,10 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
     formData.append('description', description);
 
     try {
-      await mediaService.uploadMedia(formData);
+      const response = await mediaService.uploadMedia(formData);
+      if (response?.message && response.message !== 'Media uploaded successfully.') {
+        alert(response.message);
+      }
       onUploadSuccess();
       onClose();
       // Reset
@@ -47,7 +50,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
       setTitle('');
       setDescription('');
     } catch (err) {
-      alert('Mount protocol failed: Resource already exists or connection unstable.');
+      alert(err.response?.data?.message || 'Mount protocol failed: Resource already exists or connection unstable.');
     } finally {
       setUploading(false);
     }
