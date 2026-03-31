@@ -15,7 +15,14 @@ router.route('/me')
 
 // Upload a new piece of media as the currently logged in User
 router.route('/upload')
-    .post(auth, upload.single('file'), mediaController.uploadMedia);
+    .post(
+        auth,
+        upload.fields([
+            { name: 'file', maxCount: 1 },
+            { name: 'media', maxCount: 1 }
+        ]),
+        mediaController.uploadMedia
+    );
 
 // Get only the Violations that infringe upon the currently logged in User's media
 router.route('/violations/me')

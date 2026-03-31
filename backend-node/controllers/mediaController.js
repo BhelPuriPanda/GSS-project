@@ -10,7 +10,9 @@ const scrapingService = require('../services/scrapingService');
  * @route   POST /api/media/upload
  */
 exports.uploadMedia = async (req, res, next) => {
-    if (!req.file) {
+    const uploadedFile = req.file || req.files?.file?.[0] || req.files?.media?.[0];
+
+    if (!uploadedFile) {
         return next(new AppError('Please provide a file!', 400));
     }
 
@@ -18,14 +20,14 @@ exports.uploadMedia = async (req, res, next) => {
     
     if (!title || !type) {
         // Cleanup the file if invalid payload
-        fs.unlinkSync(req.file.path);
+        fs.unlinkSync(uploadedFile.path);
         return next(new AppError('Please provide title and type field', 400));
     }
 
     let fingerprintData = { pHash: null, dHash: null, embedding: [] };
 
     try {
-        fingerprintData = await pythonService.extractFingerprint(req.file.path, type);
+        fingerprintData = await pythonService.extractFingerprint(uploadedFile.path, type);
 
         // Optional: Trigger a scraper check specifically for this new media immediately
         // scrapingService.triggerManualScrape(newMedia._id);
@@ -34,12 +36,12 @@ exports.uploadMedia = async (req, res, next) => {
         logger.error(`Python ML Service Error: ${error.message}`);
         // Optionally: We can still insert the file without the fingerprint, or fail and delete the file.
         // As per the architecture, the backend saves the fingerprint profile, so we fail if python is down.
-        fs.unlinkSync(req.file.path);
+        fs.unlinkSync(uploadedFile.path);
         return next(new AppError('Failed to extract media fingerprint from Python ML Service', 500));
     }
 
     // Clean File URL path to store in DB
-    const relativeFilePath = `/uploads/${req.file.filename}`;
+    const relativeFilePath = `/uploads/${uploadedFile.filename}`;
 
     // Create DB Document
     const newMedia = await Media.create({

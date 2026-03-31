@@ -29,7 +29,7 @@ const AppLayout = ({ children }) => {
         <div className="fixed bottom-0 left-0 h-12 w-12 border-b border-l border-white/5 md:left-72 pointer-events-none" />
         
         {/* Main Feed Container */}
-        <main className="flex-1 p-6 md:p-14 lg:p-20 relative z-10">
+        <main className="flex-1 p-6 md:p-14 lg:p-20 relative">
           <div className="max-w-[1920px] mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700">
             {children}
           </div>

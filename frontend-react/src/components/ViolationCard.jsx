@@ -37,7 +37,7 @@ const ViolationCard = ({ violation }) => {
         violation.sourceUrl,
         violation.matchedWith?.title || 'Unknown Asset'
       );
-      setAiResult(result.analysis);
+      setAiResult(result.analysis || 'NO AI STRATEGY RETURNED FROM THE ENFORCEMENT NODE.');
     } catch (err) {
       setAiResult("FAILED TO INITIALIZE AI STRATEGY ENGINE. CONNECTION UNSTABLE.");
     } finally {
@@ -55,7 +55,7 @@ const ViolationCard = ({ violation }) => {
         violation.similarityScore,
         'DAPS Enforcement Agent'
       );
-      setAiResult(result.draft);
+      setAiResult(result.draft || 'NO TAKEDOWN DRAFT RETURNED FROM THE ENFORCEMENT NODE.');
     } catch (err) {
       setAiResult("FAILED TO GENERATE TAKEDOWN MANIFEST. CHECK AI NODE STATUS.");
     } finally {

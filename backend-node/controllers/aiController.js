@@ -6,10 +6,12 @@ const logger = require('../utils/logger');
 // If a model returns 429 (rate-limited), the next one in the list is tried.
 // All are free-tier models on OpenRouter. Order: fastest → most reliable.
 const MODEL_CASCADE = [
-    'google/gemma-3n-e4b-it:free',
-    'meta-llama/llama-3.3-70b-instruct:free',
-    'nvidia/llama-3.1-nemotron-ultra-253b:free',
-    'openrouter/free',
+    'google/gemma-2-9b-it:free',
+    'mistralai/mistral-7b-instruct:free',
+    'meta-llama/llama-3-8b-instruct:free',
+    'qwen/qwen-2-7b-instruct:free',
+    'microsoft/phi-3-mini-128k-instruct:free',
+    'openrouter/auto'
 ];
 
 /**

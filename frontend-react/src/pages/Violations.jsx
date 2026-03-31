@@ -40,7 +40,7 @@ const Violations = () => {
     setShowSummaryPanel(true);
     try {
       const result = await aiService.summarizeViolations(violations);
-      setSummary(result.summary);
+      setSummary(result.summary || 'NO AGGREGATED SUMMARY RETURNED FROM THE AI NODE.');
     } catch (err) {
       setSummary("FAILED TO AGGREGATE THREAT INTELLIGENCE. NODE TIMEOUT.");
     } finally {

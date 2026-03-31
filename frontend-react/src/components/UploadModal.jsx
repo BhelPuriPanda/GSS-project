@@ -31,8 +31,11 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('media', file);
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+
+    formData.append('file', file);
     formData.append('title', title);
+    formData.append('type', mediaType);
     formData.append('description', description);
 
     try {
@@ -54,7 +57,7 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-[#05070a]/90 backdrop-blur-3xl coordinates">
-      <div className="module-card relative w-full max-w-xl bg-[#0d1117] border-white/10 shadow-[0_0_100px_rgba(207,253,1,0.05)]">
+      <div className="module-card relative w-full max-w-xl max-h-[90vh] overflow-y-auto bg-[#0d1117] border-white/10 shadow-[0_0_100px_rgba(207,253,1,0.05)] custom-scrollbar">
         
         {/* Modal Header - Industrial */}
         <div className="flex items-center justify-between border-b border-white/[0.05] bg-white/[0.01] px-8 py-6 transition-all">

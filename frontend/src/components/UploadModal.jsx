@@ -31,8 +31,11 @@ const UploadModal = ({ isOpen, onClose, onUploadSuccess }) => {
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('media', file);
+    const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+
+    formData.append('file', file);
     formData.append('title', title);
+    formData.append('type', mediaType);
     formData.append('description', description);
 
     try {

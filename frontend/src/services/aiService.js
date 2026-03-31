@@ -7,12 +7,20 @@ const aiService = {
       sourceUrl,
       matchedTitle,
     });
-    return response.data;
+
+    return {
+      ...response.data,
+      analysis: response.data?.data?.strategy || response.data?.strategy || '',
+    };
   },
 
   summarizeViolations: async (violations) => {
     const response = await api.post('/ai/summarize', { violations });
-    return response.data;
+
+    return {
+      ...response.data,
+      summary: response.data?.data?.summary || response.data?.summary || '',
+    };
   },
 
   draftTakedown: async (matchedTitle, sourceUrl, similarityScore, ownerName) => {
@@ -22,7 +30,11 @@ const aiService = {
       similarityScore,
       ownerName,
     });
-    return response.data;
+
+    return {
+      ...response.data,
+      draft: response.data?.data?.email || response.data?.email || '',
+    };
   },
 };
 
