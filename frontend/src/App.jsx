@@ -11,7 +11,7 @@ import Landing from './pages/Landing';
 
 function App() {
   return (
-    <div className="min-h-screen bg-[#030508]">
+    <div className="min-h-screen bg-slate-950">
       <Routes>
         {/* Auth Routes - Standalone */}
         <Route path="/login" element={<Login />} />

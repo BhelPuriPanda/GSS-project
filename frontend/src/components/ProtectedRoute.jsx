@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) return null; // or a loading spinner
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
