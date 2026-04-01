@@ -3,6 +3,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
 
 // Pages
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -13,6 +14,9 @@ function App() {
   return (
     <div className="min-h-screen bg-[#05070a]">
       <Routes>
+        {/* Landing / Home Page */}
+        <Route path="/" element={<Landing />} />
+
         {/* Auth Routes - Standalone */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -52,8 +56,7 @@ function App() {
         />
         
         {/* Default Redirects */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
   );
