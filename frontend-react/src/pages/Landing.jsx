@@ -125,12 +125,12 @@ const Landing = () => {
             transition={{ delay: 1.5, duration: 1 }}
             className="flex flex-wrap items-center justify-center gap-8 pt-10"
           >
-             <Link to="/#/register" className="btn-cyber">
+             <Link to="/register" className="btn-cyber">
                 <span>Access Command Node</span>
                 <ArrowRight size={20} />
                 <div className="btn-cyber-shine" />
              </Link>
-             <Link to="/#/login" className="btn-cyber-outline">
+             <Link to="/login" className="btn-cyber-outline">
                 <span>Terminal Access</span>
                 <div className="btn-cyber-shine" />
              </Link>
