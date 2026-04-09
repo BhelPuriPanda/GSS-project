@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: daps_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - daps_network
+
+  backend-node:
+    build:
+      context: ./backend-node
+      dockerfile: Dockerfile
+    container_name: daps_backend_node
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/daps_db
+    env_file:
+      - ./backend-node/.env
+    depends_on:
+      - mongodb
+    networks:
+      - daps_network
+
+  backend-python:
+    build:
+      context: ./backend-python
+      dockerfile: Dockerfile
+    container_name: daps_backend_python
+    ports:
+      - "8000:8000"
+    networks:
+      - daps_network
+
+  node-scrapper:
+    build:
+      context: ./node-scrapper
+      dockerfile: Dockerfile
+    container_name: daps_node_scrapper
+    # Passing the node-scrapper's specific env file if it exists, otherwise it will just be ignored if we create an empty one or it's fine.
+    # Actually, if .env doesn't exist, docker-compose will throw an error, but we saw .env exists in node-scrapper.
+    env_file:
+      - ./node-scrapper/.env
+    depends_on:
+      - backend-node
+    networks:
+      - daps_network
+
+  frontend-react:
+    build:
+      context: ./frontend-react
+      dockerfile: Dockerfile
+    container_name: daps_frontend_react
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-node
+    networks:
+      - daps_network
+
+networks:
+  daps_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
