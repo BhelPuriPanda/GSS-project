@@ -20,12 +20,13 @@ The platform combines:
 
 ## Core Capabilities
 
+- **Responsive Cyberpunk UI** with modern dark mode aesthetics and data-rich analyst toolsets
 - **Secure media registration** with upload, storage, and ownership mapping
 - **Visual fingerprint generation** using perceptual hashes and CNN embeddings
 - **Image/video comparison** for duplicate and infringement detection
+- **Hybrid hit-and-run scraper (Cheerio + Puppeteer)** for fast, memory-efficient background scanning and reporting
 - **Violation intelligence dashboard** for reviewing detected breaches
-- **AI legal assistant** for strategy summaries and takedown draft generation
-- **Background scraping pipeline** for scanning target sites and reporting violations
+- **Robust AI Legal Assistant** using a multi-model fallback system (OpenRouter) to generate legal strategies and copyright takedown requests
 - **ML sandbox** for side-by-side diagnostic comparison during demos and testing
 
 ---
@@ -34,11 +35,11 @@ The platform combines:
 
 | Layer | Stack | Responsibility |
 |---|---|---|
-| Frontend | React, Vite, Tailwind | Dashboard, auth views, ML sandbox, violation review |
-| Backend API | Node.js, Express, Mongoose | Auth, uploads, AI routes, orchestration, business logic |
+| Frontend | React, Vite, Tailwind | Cyberpunk UI, auth views, ML sandbox, violation dashboard |
+| Backend API | Node.js, Express, Mongoose | Auth, uploads, AI fallback routing, orchestration |
 | ML Service | FastAPI, PyTorch, TorchVision, OpenCV | Fingerprinting, embedding generation, similarity scoring |
-| Scraper Node | Node.js, Axios, Puppeteer, Cheerio | Asset scanning, candidate collection, reporting |
-| Database | MongoDB Atlas | Users, media records, violation records |
+| Scraper Node | Node.js, Axios, Puppeteer, Cheerio | Hybrid hit-and-run asset scanning and reporting |
+| Database | MongoDB Atlas / Docker | Users, media records, violation records |
 
 ---
 
@@ -74,7 +75,25 @@ GSS/
 
 ## Local Development Setup
 
-### Prerequisites
+### Run with Docker Compose (Recommended)
+
+To run the entire stack seamlessly and avoid local environment configuration issues, use the provided Docker Compose setup:
+
+1. **Configure Environment Variables**: Ensure you have created the necessary `.env` files locally before running Docker.
+   - `backend-node/.env` (See the Node backend `.env` example below)
+   - `node-scrapper/.env` (Requires `BACKEND_URL=http://backend-node:5000` and `SCRAPER_API_KEY`)
+
+2. **Start the Stack**:
+```bash
+docker-compose up --build
+```
+This builds and starts the **Frontend** (accessible at `http://localhost`), **Node API**, **Python ML Service**, **Scraper**, and a **local MongoDB** container, automatically linking internal networks and environment variables.
+
+### Manual Setup (Without Docker)
+
+If you prefer to run services individually:
+
+#### Prerequisites
 
 - **Node.js** 18+
 - **Python** 3.10+
