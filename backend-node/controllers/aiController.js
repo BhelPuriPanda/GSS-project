@@ -38,7 +38,7 @@ async function callWithFallback(prompt, apiKey) {
                     headers: {
                         Authorization: `Bearer ${apiKey}`,
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "http://localhost:4000",
+                        "HTTP-Referer": "https://daps-backend-fg54.onrender.com",
                         "X-Title": "Digital Asset Protection System"
                     },
                     timeout: 30000 // 30 second timeout per model

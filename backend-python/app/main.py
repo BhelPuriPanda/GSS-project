@@ -19,7 +19,7 @@ app.add_middleware(
 def startup_event():
     ensure_dir(UPLOAD_DIR)
 
-@app.api_route("/", methods=["GET", "HEAD"])
+@app.get("/")
 def root():
     return {
         "success": True,

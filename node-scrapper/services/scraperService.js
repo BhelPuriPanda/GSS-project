@@ -149,7 +149,16 @@ class ScraperService {
                 // Randomly select one of the protected files to simulate an exact dummy 100% piracy hit
                 const randomFile = imageFiles[Math.floor(Math.random() * imageFiles.length)];
                 fs.copyFileSync(path.join(uploadsDir, randomFile), tempFilePath);
-                return [{ url: `http://mock-fake-site${fakeSiteId}.com/${randomFile}`, preDownloadedPath: tempFilePath }];
+                
+                const mockDomains = [
+                    'https://pinterest.com/pin/',
+                    'https://instagram.com/p/',
+                    'https://reddit.com/r/art/comments/',
+                    'https://twitter.com/status/'
+                ];
+                const demoUrl = `${mockDomains[(fakeSiteId - 1) % mockDomains.length]}${randomFile.replace(/[^a-zA-Z0-9]/g, '')}`;
+                
+                return [{ url: demoUrl, preDownloadedPath: tempFilePath }];
             }
         }
         return [];
