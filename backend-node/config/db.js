@@ -3,7 +3,7 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
     try {
-        const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/daps_db';
+        const mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/daps_db';
         const conn = await mongoose.connect(mongoURI, {
             // These options are no longer necessary in Mongoose 6+, but harmless
         });
